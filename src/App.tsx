@@ -1,38 +1,51 @@
 import { useCostStore } from './store/useCostStore';
-import Layout from './components/Layout';
-import CostSummary from './components/CostSummary';
-import BOMTable from './components/BOMTable';
-import ProcessCost from './components/ProcessCost';
-import OverheadCost from './components/OverheadCost';
-import LotSimulation from './components/LotSimulation';
-import BreakEvenAnalysis from './components/BreakEvenAnalysis';
+import DashboardLayout from './components/DashboardLayout';
+import DashboardHome from './components/DashboardHome';
+import CostSimulatorPage from './components/CostSimulatorPage';
+import PlaceholderPage from './components/PlaceholderPage';
 
 function App() {
-  const activeTab = useCostStore((s) => s.activeTab);
+  const currentPage = useCostStore((s) => s.currentPage);
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case 'summary':
-        return <CostSummary />;
-      case 'bom':
-        return <BOMTable />;
-      case 'process':
-        return <ProcessCost />;
-      case 'overhead':
-        return <OverheadCost />;
-      case 'lot':
-        return <LotSimulation />;
-      case 'bep':
-        return <BreakEvenAnalysis />;
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'home':
+        return <DashboardHome />;
+      case 'cost-simulator':
+        return <CostSimulatorPage />;
+      case 'production':
+        return (
+          <PlaceholderPage
+            icon="🏭"
+            title="생산 관리"
+            description="MOCVD 런 스케줄링, 생산 실적 추적, 장비 가동률 모니터링 기능이 추가될 예정입니다."
+          />
+        );
+      case 'quality':
+        return (
+          <PlaceholderPage
+            icon="✅"
+            title="품질 관리"
+            description="PL/XRD 측정 데이터 관리, 불량 분석, SPC 관리도 기능이 추가될 예정입니다."
+          />
+        );
+      case 'settings':
+        return (
+          <PlaceholderPage
+            icon="⚙️"
+            title="설정"
+            description="사용자 설정, 기본값 관리, 데이터 내보내기/가져오기 기능이 추가될 예정입니다."
+          />
+        );
       default:
-        return <CostSummary />;
+        return <DashboardHome />;
     }
   };
 
   return (
-    <Layout>
-      {renderTab()}
-    </Layout>
+    <DashboardLayout>
+      {renderPage()}
+    </DashboardLayout>
   );
 }
 

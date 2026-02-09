@@ -1,7 +1,11 @@
 import { create } from 'zustand';
 import { BOMItem, MOCVDConfig, MeasurementItem, ShipmentConfig, OverheadCosts } from '../types';
 
+export type DashboardPage = 'home' | 'cost-simulator' | 'production' | 'quality' | 'settings';
+
 interface CostStore {
+  currentPage: DashboardPage;
+  sidebarOpen: boolean;
   bom: BOMItem[];
   mocvd: MOCVDConfig;
   measurements: MeasurementItem[];
@@ -11,6 +15,8 @@ interface CostStore {
   sellingPrice: number;
   activeTab: string;
 
+  setCurrentPage: (page: DashboardPage) => void;
+  setSidebarOpen: (open: boolean) => void;
   setBom: (bom: BOMItem[]) => void;
   addBomItem: (item: BOMItem) => void;
   updateBomItem: (id: string, item: Partial<BOMItem>) => void;
@@ -89,6 +95,8 @@ const defaultOverhead: OverheadCosts = {
 };
 
 export const useCostStore = create<CostStore>((set) => ({
+  currentPage: 'home',
+  sidebarOpen: true,
   bom: defaultBom,
   mocvd: defaultMocvd,
   measurements: defaultMeasurements,
@@ -98,6 +106,8 @@ export const useCostStore = create<CostStore>((set) => ({
   sellingPrice: 50000,
   activeTab: 'summary',
 
+  setCurrentPage: (currentPage) => set({ currentPage }),
+  setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   setBom: (bom) => set({ bom }),
   addBomItem: (item) => set((s) => ({ bom: [...s.bom, item] })),
   updateBomItem: (id, updates) =>
