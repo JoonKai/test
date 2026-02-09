@@ -2,7 +2,7 @@ import { useCostStore } from '../store/useCostStore';
 import { BOMCategory, BOMItem } from '../types';
 import { formatKRW, calcMaterialPerRun, calcMaterialPerWafer } from '../utils/calculations';
 
-const categories: BOMCategory[] = ['MO소스', '수소화물', '도펀트', '캐리어가스', '기판', '소모품', '기타'];
+const categories: BOMCategory[] = ['MO소스', '질소', '도펀트', '캐리어', '기판', '소모품', '기타'];
 
 export default function BOMTable() {
   const { bom, mocvd, addBomItem, updateBomItem, removeBomItem } = useCostStore();

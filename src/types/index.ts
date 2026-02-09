@@ -1,5 +1,5 @@
 // EPI 원자재 분류
-export type BOMCategory = 'MO소스' | '수소화물' | '도펀트' | '캐리어가스' | '기판' | '소모품' | '기타';
+export type BOMCategory = 'MO소스' | '질소' | '도펀트' | '캐리어' | '기판' | '소모품' | '기타';
 
 export interface BOMItem {
   id: string;

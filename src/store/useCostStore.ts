@@ -42,11 +42,11 @@ const defaultBom: BOMItem[] = [
   { id: '2', category: 'MO소스', name: 'TEGa', spec: 'Triethylgallium', unit: 'g', usagePerRun: 5, unitPrice: 400, supplier: 'Strem' },
   { id: '3', category: 'MO소스', name: 'TMAl', spec: 'Trimethylaluminium', unit: 'g', usagePerRun: 8, unitPrice: 280, supplier: 'SAFC' },
   { id: '4', category: 'MO소스', name: 'TMIn', spec: 'Trimethylindium', unit: 'g', usagePerRun: 10, unitPrice: 600, supplier: 'SAFC' },
-  { id: '5', category: '수소화물', name: 'NH3', spec: '암모니아 6N', unit: 'L', usagePerRun: 500, unitPrice: 5, supplier: '대성산업가스' },
+  { id: '5', category: '질소', name: 'NH3', spec: '암모니아 6N', unit: 'L', usagePerRun: 500, unitPrice: 5, supplier: '대성산업가스' },
   { id: '6', category: '도펀트', name: 'SiH4', spec: '실란 (n-type)', unit: 'cc', usagePerRun: 50, unitPrice: 20, supplier: 'SK머티리얼즈' },
   { id: '7', category: '도펀트', name: 'Cp2Mg', spec: 'Bis-Cp Mg (p-type)', unit: 'g', usagePerRun: 3, unitPrice: 800, supplier: 'Strem' },
-  { id: '8', category: '캐리어가스', name: 'H2', spec: '수소 7N', unit: 'L', usagePerRun: 2000, unitPrice: 0.5, supplier: '대성산업가스' },
-  { id: '9', category: '캐리어가스', name: 'N2', spec: '질소 6N', unit: 'L', usagePerRun: 1000, unitPrice: 0.3, supplier: '대성산업가스' },
+  { id: '8', category: '캐리어', name: 'H2', spec: '수소 7N', unit: 'L', usagePerRun: 2000, unitPrice: 0.5, supplier: '대성산업가스' },
+  { id: '9', category: '캐리어', name: 'N2', spec: '질소 6N', unit: 'L', usagePerRun: 1000, unitPrice: 0.3, supplier: '대성산업가스' },
   { id: '10', category: '기판', name: 'Sapphire Wafer', spec: '4" DSP C-plane', unit: 'EA', usagePerRun: 14, unitPrice: 8000, supplier: 'Crystalwise' },
 ];
 
@@ -67,7 +67,7 @@ const defaultMocvd: MOCVDConfig = {
 const defaultMeasurements: MeasurementItem[] = [
   { id: '1', name: 'PL 측정', equipmentName: 'PL Mapper', timePerWaferSec: 120, samplingRate: 100, equipmentCostPerHour: 30000, workers: 1, hourlyWage: 18000 },
   { id: '2', name: 'XRD 측정', equipmentName: 'XRD', timePerWaferSec: 300, samplingRate: 30, equipmentCostPerHour: 50000, workers: 1, hourlyWage: 20000 },
-  { id: '3', name: '두께 측정', equipmentName: 'Reflectometer', timePerWaferSec: 60, samplingRate: 100, equipmentCostPerHour: 15000, workers: 1, hourlyWage: 18000 },
+  { id: '3', name: 'LEI 측정', equipmentName: 'Reflectometer', timePerWaferSec: 60, samplingRate: 100, equipmentCostPerHour: 15000, workers: 1, hourlyWage: 18000 },
   { id: '4', name: '표면 검사', equipmentName: 'Microscope', timePerWaferSec: 90, samplingRate: 50, equipmentCostPerHour: 10000, workers: 1, hourlyWage: 18000 },
 ];
 
