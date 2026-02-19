@@ -11,24 +11,38 @@ export function calcMaterialPerWafer(bom: BOMItem[], wafersPerRun: number): numb
 }
 
 // MOCVD 공정 원가 (런 기준)
-export function calcMOCVDCostPerRun(mocvd: MOCVDConfig): { labor: number; equipment: number; maintenance: number } {
+export function calcMOCVDCostPerRun(mocvd: MOCVDConfig): {
+  labor: number;
+  equipment: number;
+  maintenance: number;
+  cleaning: number;
+  power: number;
+} {
   const totalTimeSec = mocvd.runTimeSec + mocvd.setupTimeSec;
   const totalTimeHours = totalTimeSec / 3600;
   const labor = totalTimeHours * mocvd.hourlyWage * mocvd.workers;
   const equipment = totalTimeHours * mocvd.equipmentCostPerHour;
   const maintenance = mocvd.maintenanceCostPerRun;
-  return { labor, equipment, maintenance };
+  const cleaning = mocvd.cleaningIntervalRuns > 0
+    ? mocvd.cleaningCostPerSession / mocvd.cleaningIntervalRuns
+    : 0;
+  const power = totalTimeHours * mocvd.powerConsumptionKW * mocvd.electricityRate;
+  return { labor, equipment, maintenance, cleaning, power };
 }
 
 export function calcBakeCostPerRun(
   bake: BakeConfig,
   wafersPerRun: number
-): { labor: number; equipment: number } {
-  const totalTimeSec = bake.loadingTimePerRunSec + bake.bakeTimePerWaferSec * wafersPerRun;
+): { labor: number; equipment: number; maintenance: number } {
+  const totalTimeSec =
+    bake.loadingTimePerRunSec +
+    bake.bakeTimePerWaferSec * wafersPerRun +
+    bake.cooldownTimeSec;
   const hours = totalTimeSec / 3600;
   const labor = hours * bake.hourlyWage * bake.workers;
   const equipment = hours * bake.equipmentCostPerHour;
-  return { labor, equipment };
+  const maintenance = bake.maintenanceCostPerRun;
+  return { labor, equipment, maintenance };
 }
 
 // 측정 공정 원가 (런 기준 = 웨이퍼수 기준)
@@ -40,10 +54,22 @@ export function calcMeasurementCostPerRun(
   let equipment = 0;
   for (const m of measurements) {
     const sampledWafers = wafersPerRun * (m.samplingRate / 100);
-    const hours = (m.timePerWaferSec * sampledWafers) / 3600;
+    const hours = (m.timePerWaferSec * sampledWafers + m.loadingTimeSec) / 3600;
     labor += hours * m.hourlyWage * m.workers;
-    equipment += hours * m.equipmentCostPerHour;
+    equipment += hours * m.equipmentCostPerHour + m.maintenanceCostPerRun;
   }
+  return { labor, equipment };
+}
+
+// 측정 항목 1개의 런당 원가 계산 (UI 표시용)
+export function calcSingleMeasurementCostPerRun(
+  m: MeasurementItem,
+  wafersPerRun: number
+): { labor: number; equipment: number } {
+  const sampledWafers = wafersPerRun * (m.samplingRate / 100);
+  const hours = (m.timePerWaferSec * sampledWafers + m.loadingTimeSec) / 3600;
+  const labor = hours * m.hourlyWage * m.workers;
+  const equipment = hours * m.equipmentCostPerHour + m.maintenanceCostPerRun;
   return { labor, equipment };
 }
 
@@ -51,12 +77,17 @@ export function calcMeasurementCostPerRun(
 export function calcShipmentCostPerRun(
   shipment: ShipmentConfig,
   wafersPerRun: number
-): { labor: number; material: number } {
-  const totalTimeSec = (shipment.packingTimePerWaferSec + shipment.inspectionTimePerWaferSec) * wafersPerRun;
+): { labor: number; material: number; equipment: number } {
+  const totalTimeSec =
+    (shipment.packingTimePerWaferSec + shipment.inspectionTimePerWaferSec) * wafersPerRun +
+    shipment.documentationTimeSec;
   const hours = totalTimeSec / 3600;
   const labor = hours * shipment.hourlyWage * shipment.workers;
-  const material = shipment.packagingMaterialCost * wafersPerRun;
-  return { labor, material };
+  const material =
+    (shipment.packagingMaterialCost + shipment.shippingCostPerWafer + shipment.insuranceCostPerWafer) *
+    wafersPerRun;
+  const equipment = hours * shipment.inspectionEquipmentCostPerHour;
+  return { labor, material, equipment };
 }
 
 // 고정 제조경비
@@ -93,7 +124,6 @@ export function calcFullCost(
   // 필요한 런 수 (불량 고려)
   const requiredWafers = totalYield > 0 ? lotSize / totalYield : lotSize;
   const runCount = wafersPerRun > 0 ? Math.ceil(requiredWafers / wafersPerRun) : 0;
-  const actualWafers = runCount * wafersPerRun;
 
   // 직접재료비
   const directMaterial = calcMaterialPerRun(bom) * runCount;
@@ -105,8 +135,17 @@ export function calcFullCost(
   const shipCost = calcShipmentCostPerRun(shipment, wafersPerRun);
   const directLabor = (mocvdCost.labor + bakeCost.labor + measCost.labor + shipCost.labor) * runCount;
 
-  // 제조경비 (설비비 + 유지보수 + 고정경비)
-  const equipmentTotal = (mocvdCost.equipment + bakeCost.equipment + measCost.equipment + mocvdCost.maintenance) * runCount;
+  // 제조경비 (설비비 + 유지보수 + 전력비 + 청소비 + 고정경비)
+  const equipmentTotal =
+    (mocvdCost.equipment +
+      mocvdCost.maintenance +
+      mocvdCost.cleaning +
+      mocvdCost.power +
+      bakeCost.equipment +
+      bakeCost.maintenance +
+      measCost.equipment +
+      shipCost.equipment) *
+    runCount;
   const packagingMaterial = shipCost.material * runCount;
   const fixedOverhead = calcFixedOverhead(overhead);
   const manufacturingOverhead = equipmentTotal + packagingMaterial + fixedOverhead;
@@ -151,10 +190,19 @@ export function calcBreakEven(
 
   const costPerRun =
     materialPerRun +
-    mocvdCost.labor + mocvdCost.equipment + mocvdCost.maintenance +
-    bakeCost.labor + bakeCost.equipment +
-    measCost.labor + measCost.equipment +
-    shipCost.labor + shipCost.material;
+    mocvdCost.labor +
+    mocvdCost.equipment +
+    mocvdCost.maintenance +
+    mocvdCost.cleaning +
+    mocvdCost.power +
+    bakeCost.labor +
+    bakeCost.equipment +
+    bakeCost.maintenance +
+    measCost.labor +
+    measCost.equipment +
+    shipCost.labor +
+    shipCost.material +
+    shipCost.equipment;
 
   const goodWafersPerRun = wafersPerRun * totalYield;
   const variableCostPerWafer = goodWafersPerRun > 0 ? costPerRun / goodWafersPerRun : Infinity;

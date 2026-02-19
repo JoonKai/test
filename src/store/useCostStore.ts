@@ -3,6 +3,21 @@ import { BOMItem, MOCVDConfig, BakeConfig, MeasurementItem, ShipmentConfig, Over
 
 export type DashboardPage = 'home' | 'cost-simulator' | 'production' | 'quality' | 'settings';
 
+// JSON으로 저장/불러오기할 시뮬레이터 설정 형식
+export interface SimulatorConfig {
+  version: string;
+  exportedAt: string;
+  name?: string;
+  bom: BOMItem[];
+  mocvd: MOCVDConfig;
+  bake: BakeConfig;
+  measurements: MeasurementItem[];
+  shipment: ShipmentConfig;
+  overhead: OverheadCosts;
+  lotSize: number;
+  sellingPrice: number;
+}
+
 interface CostStore {
   currentPage: DashboardPage;
   sidebarOpen: boolean;
@@ -36,6 +51,7 @@ interface CostStore {
   setLotSize: (size: number) => void;
   setSellingPrice: (price: number) => void;
   setActiveTab: (tab: string) => void;
+  loadConfig: (config: SimulatorConfig) => void;
 }
 
 // GaN EPI 기본 원자재
@@ -55,14 +71,20 @@ const defaultBom: BOMItem[] = [
 // MOCVD 기본 설정
 const defaultMocvd: MOCVDConfig = {
   wafersPerRun: 14,
-  runTimeSec: 14400,       // 4시간
-  setupTimeSec: 3600,      // 1시간 (로딩/언로딩/퍼지)
+  runTimeSec: 14400,           // 4시간
+  setupTimeSec: 3600,          // 1시간 (로딩/언로딩/퍼지)
   reactorCount: 2,
   equipmentCostPerHour: 80000,
   maintenanceCostPerRun: 50000,
   workers: 2,
   hourlyWage: 20000,
   defectRate: 5,
+  utilizationRate: 80,         // 장비 가동률 80%
+  cleaningIntervalRuns: 20,    // 20런마다 청소
+  cleaningTimeSec: 14400,      // 청소 4시간
+  cleaningCostPerSession: 200000, // 청소 1회 비용
+  powerConsumptionKW: 150,     // 150kW
+  electricityRate: 120,        // 120원/kWh
 };
 
 const defaultBake: BakeConfig = {
@@ -71,14 +93,18 @@ const defaultBake: BakeConfig = {
   equipmentCostPerHour: 35000,
   workers: 1,
   hourlyWage: 18000,
+  bakeTemperatureDegC: 850,    // 850°C
+  furnaceCount: 1,
+  maintenanceCostPerRun: 10000,
+  cooldownTimeSec: 1800,       // 냉각 30분
 };
 
 // 측정 공정 기본값
 const defaultMeasurements: MeasurementItem[] = [
-  { id: '1', name: 'PL 측정', equipmentName: 'PL Mapper', timePerWaferSec: 120, samplingRate: 100, equipmentCostPerHour: 30000, workers: 1, hourlyWage: 18000 },
-  { id: '2', name: 'XRD 측정', equipmentName: 'XRD', timePerWaferSec: 300, samplingRate: 30, equipmentCostPerHour: 50000, workers: 1, hourlyWage: 20000 },
-  { id: '3', name: 'LEI 측정', equipmentName: 'Reflectometer', timePerWaferSec: 60, samplingRate: 100, equipmentCostPerHour: 15000, workers: 1, hourlyWage: 18000 },
-  { id: '4', name: '표면 검사', equipmentName: 'Microscope', timePerWaferSec: 90, samplingRate: 50, equipmentCostPerHour: 10000, workers: 1, hourlyWage: 18000 },
+  { id: '1', name: 'PL 측정', equipmentName: 'PL Mapper', timePerWaferSec: 120, samplingRate: 100, equipmentCostPerHour: 30000, workers: 1, hourlyWage: 18000, loadingTimeSec: 300, maintenanceCostPerRun: 5000 },
+  { id: '2', name: 'XRD 측정', equipmentName: 'XRD', timePerWaferSec: 300, samplingRate: 30, equipmentCostPerHour: 50000, workers: 1, hourlyWage: 20000, loadingTimeSec: 600, maintenanceCostPerRun: 8000 },
+  { id: '3', name: 'LEI 측정', equipmentName: 'Reflectometer', timePerWaferSec: 60, samplingRate: 100, equipmentCostPerHour: 15000, workers: 1, hourlyWage: 18000, loadingTimeSec: 180, maintenanceCostPerRun: 3000 },
+  { id: '4', name: '표면 검사', equipmentName: 'Microscope', timePerWaferSec: 90, samplingRate: 50, equipmentCostPerHour: 10000, workers: 1, hourlyWage: 18000, loadingTimeSec: 120, maintenanceCostPerRun: 2000 },
 ];
 
 // 출하 기본값
@@ -89,6 +115,10 @@ const defaultShipment: ShipmentConfig = {
   workers: 1,
   hourlyWage: 15000,
   shipmentDefectRate: 1,
+  documentationTimeSec: 1800,         // 서류 작성 30분/런
+  inspectionEquipmentCostPerHour: 10000,
+  shippingCostPerWafer: 300,          // 운송비 300원/매
+  insuranceCostPerWafer: 100,         // 보험비 100원/매
 };
 
 // 제조경비 기본값 (월 기준)
@@ -139,4 +169,15 @@ export const useCostStore = create<CostStore>((set) => ({
   setLotSize: (lotSize) => set({ lotSize }),
   setSellingPrice: (sellingPrice) => set({ sellingPrice }),
   setActiveTab: (activeTab) => set({ activeTab }),
+  loadConfig: (config) =>
+    set({
+      bom: config.bom,
+      mocvd: config.mocvd,
+      bake: config.bake,
+      measurements: config.measurements,
+      shipment: config.shipment,
+      overhead: config.overhead,
+      lotSize: config.lotSize,
+      sellingPrice: config.sellingPrice,
+    }),
 }));

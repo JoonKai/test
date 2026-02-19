@@ -23,6 +23,12 @@ export interface MOCVDConfig {
   workers: number;
   hourlyWage: number;
   defectRate: number;
+  utilizationRate: number;        // 장비 가동률 (%)
+  cleaningIntervalRuns: number;   // 청소 주기 (런)
+  cleaningTimeSec: number;        // 청소 소요 시간 (초)
+  cleaningCostPerSession: number; // 청소 1회 비용 (원)
+  powerConsumptionKW: number;     // 전력 소비 (kW)
+  electricityRate: number;        // 전기 요금 (원/kWh)
 }
 
 export interface BakeConfig {
@@ -31,6 +37,10 @@ export interface BakeConfig {
   equipmentCostPerHour: number;
   workers: number;
   hourlyWage: number;
+  bakeTemperatureDegC: number;    // 베이크 온도 (°C)
+  furnaceCount: number;           // 로 수 (대)
+  maintenanceCostPerRun: number;  // 유지보수비/런 (원)
+  cooldownTimeSec: number;        // 냉각 시간 (초)
 }
 
 // 측정 항목
@@ -43,6 +53,8 @@ export interface MeasurementItem {
   equipmentCostPerHour: number;
   workers: number;
   hourlyWage: number;
+  loadingTimeSec: number;         // 로딩/셋업 시간 (초/런)
+  maintenanceCostPerRun: number;  // 유지보수비/런 (원)
 }
 
 // 출하 공정
@@ -53,6 +65,10 @@ export interface ShipmentConfig {
   workers: number;
   hourlyWage: number;
   shipmentDefectRate: number;
+  documentationTimeSec: number;           // 서류 작성 시간 (초/런)
+  inspectionEquipmentCostPerHour: number; // 검사 장비비 (원/시간)
+  shippingCostPerWafer: number;           // 운송비 (원/매)
+  insuranceCostPerWafer: number;          // 보험비 (원/매)
 }
 
 // 제조경비 (EPI 특화)
