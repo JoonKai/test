@@ -4,7 +4,7 @@ import { useCostStore } from '../store/useCostStore';
 const tabs = [
   { id: 'summary', label: '원가 요약' },
   { id: 'bom', label: 'EPI 원자재' },
-  { id: 'process', label: 'MOCVD / 측정 / 출하' },
+  { id: 'process', label: 'MOCVD / 베이크 / 측정 / 출하' },
   { id: 'overhead', label: '경비/판관비' },
   { id: 'lot', label: '생산량 시뮬레이션' },
   { id: 'bep', label: '손익분기점' },

@@ -25,6 +25,14 @@ export interface MOCVDConfig {
   defectRate: number;
 }
 
+export interface BakeConfig {
+  bakeTimePerWaferSec: number;
+  loadingTimePerRunSec: number;
+  equipmentCostPerHour: number;
+  workers: number;
+  hourlyWage: number;
+}
+
 // 측정 항목
 export interface MeasurementItem {
   id: string;

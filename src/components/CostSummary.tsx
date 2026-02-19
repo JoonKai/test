@@ -4,11 +4,11 @@ import { calcFullCost, formatKRW } from '../utils/calculations';
 import CostChart from './CostChart';
 
 export default function CostSummary() {
-  const { bom, mocvd, measurements, shipment, overhead, lotSize, sellingPrice } = useCostStore();
+  const { bom, mocvd, bake, measurements, shipment, overhead, lotSize, sellingPrice } = useCostStore();
 
   const cost = useMemo(
-    () => calcFullCost(bom, mocvd, measurements, shipment, overhead, lotSize),
-    [bom, mocvd, measurements, shipment, overhead, lotSize]
+    () => calcFullCost(bom, mocvd, bake, measurements, shipment, overhead, lotSize),
+    [bom, mocvd, bake, measurements, shipment, overhead, lotSize]
   );
 
   const runCount = useMemo(() => {
@@ -22,7 +22,7 @@ export default function CostSummary() {
 
   const items = [
     { label: '직접재료비 (MO소스/가스/기판)', value: cost.directMaterial, color: 'text-blue-700' },
-    { label: '직접노무비 (MOCVD/측정/출하)', value: cost.directLabor, color: 'text-green-700' },
+    { label: '직접노무비 (MOCVD/베이크/측정/출하)', value: cost.directLabor, color: 'text-green-700' },
     { label: '제조경비 (설비/유지보수/간접)', value: cost.manufacturingOverhead, color: 'text-amber-700' },
     { label: '제조원가', value: cost.manufacturingCost, color: 'text-gray-800', bold: true },
     { label: '판관비', value: cost.sellingAdminCost, color: 'text-red-600' },

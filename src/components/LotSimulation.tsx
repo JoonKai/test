@@ -1,14 +1,34 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useCostStore } from '../store/useCostStore';
 import { calcFullCost, formatKRW } from '../utils/calculations';
 
 export default function LotSimulation() {
-  const { bom, mocvd, measurements, shipment, overhead, lotSize, setLotSize } = useCostStore();
+  const { bom, mocvd, bake, measurements, shipment, overhead, lotSize, setLotSize } = useCostStore();
+  const [inputValue, setInputValue] = useState<string>(String(lotSize));
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleInputCommit = () => {
+    const parsed = parseInt(inputValue, 10);
+    if (!isNaN(parsed)) {
+      const clamped = Math.max(14, Math.min(10000, parsed));
+      setLotSize(clamped);
+      setInputValue(String(clamped));
+    } else {
+      setInputValue(String(lotSize));
+    }
+  };
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleInputCommit();
+  };
 
   const currentCost = useMemo(
-    () => calcFullCost(bom, mocvd, measurements, shipment, overhead, lotSize),
-    [bom, mocvd, measurements, shipment, overhead, lotSize]
+    () => calcFullCost(bom, mocvd, bake, measurements, shipment, overhead, lotSize),
+    [bom, mocvd, bake, measurements, shipment, overhead, lotSize]
   );
 
   const runCount = useMemo(() => {
@@ -20,10 +40,10 @@ export default function LotSimulation() {
   const chartData = useMemo(() => {
     const steps = [14, 28, 56, 100, 200, 500, 1000, 2000, 3000, 5000, 7000, 10000];
     return steps.map((qty) => {
-      const cost = calcFullCost(bom, mocvd, measurements, shipment, overhead, qty);
+      const cost = calcFullCost(bom, mocvd, bake, measurements, shipment, overhead, qty);
       return { lot: qty, unitCost: Math.round(cost.unitCost), totalCost: Math.round(cost.totalCost) };
     });
-  }, [bom, mocvd, measurements, shipment, overhead]);
+  }, [bom, mocvd, bake, measurements, shipment, overhead]);
 
   const optimalLot = useMemo(() => {
     for (let i = 1; i < chartData.length; i++) {
@@ -40,17 +60,32 @@ export default function LotSimulation() {
         <h2 className="text-lg font-semibold text-gray-800 mb-4">웨이퍼 생산량 시뮬레이션</h2>
 
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-600 mb-2">
-            목표 양품 웨이퍼 수: <span className="text-blue-700 font-bold">{lotSize.toLocaleString()}매</span>
-            <span className="text-gray-400 ml-2">(필요 런 수: {runCount}런)</span>
-          </label>
+          <div className="flex items-center gap-3 mb-2">
+            <label className="text-sm font-medium text-gray-600">
+              목표 양품 웨이퍼 수
+              <span className="text-gray-400 ml-2">(필요 런 수: {runCount}런)</span>
+            </label>
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                min={14}
+                max={10000}
+                value={inputValue}
+                onChange={handleInputChange}
+                onBlur={handleInputCommit}
+                onKeyDown={handleInputKeyDown}
+                className="w-24 px-2 py-1 text-sm font-bold text-blue-700 border border-blue-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 text-right"
+              />
+              <span className="text-sm font-medium text-gray-600">매</span>
+            </div>
+          </div>
           <input
             type="range"
             min={14}
             max={10000}
             step={mocvd.wafersPerRun}
             value={lotSize}
-            onChange={(e) => setLotSize(Number(e.target.value))}
+            onChange={(e) => { setLotSize(Number(e.target.value)); setInputValue(e.target.value); }}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
           />
           <div className="flex justify-between text-xs text-gray-400 mt-1">

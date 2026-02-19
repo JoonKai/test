@@ -1,4 +1,4 @@
-import { BOMItem, MOCVDConfig, MeasurementItem, ShipmentConfig, OverheadCosts, CostBreakdown } from '../types';
+import { BOMItem, MOCVDConfig, BakeConfig, MeasurementItem, ShipmentConfig, OverheadCosts, CostBreakdown } from '../types';
 
 // 1런당 직접재료비
 export function calcMaterialPerRun(bom: BOMItem[]): number {
@@ -18,6 +18,17 @@ export function calcMOCVDCostPerRun(mocvd: MOCVDConfig): { labor: number; equipm
   const equipment = totalTimeHours * mocvd.equipmentCostPerHour;
   const maintenance = mocvd.maintenanceCostPerRun;
   return { labor, equipment, maintenance };
+}
+
+export function calcBakeCostPerRun(
+  bake: BakeConfig,
+  wafersPerRun: number
+): { labor: number; equipment: number } {
+  const totalTimeSec = bake.loadingTimePerRunSec + bake.bakeTimePerWaferSec * wafersPerRun;
+  const hours = totalTimeSec / 3600;
+  const labor = hours * bake.hourlyWage * bake.workers;
+  const equipment = hours * bake.equipmentCostPerHour;
+  return { labor, equipment };
 }
 
 // 측정 공정 원가 (런 기준 = 웨이퍼수 기준)
@@ -68,6 +79,7 @@ export function calcSellingAdminCost(overhead: OverheadCosts): number {
 export function calcFullCost(
   bom: BOMItem[],
   mocvd: MOCVDConfig,
+  bake: BakeConfig,
   measurements: MeasurementItem[],
   shipment: ShipmentConfig,
   overhead: OverheadCosts,
@@ -88,12 +100,13 @@ export function calcFullCost(
 
   // 직접노무비
   const mocvdCost = calcMOCVDCostPerRun(mocvd);
+  const bakeCost = calcBakeCostPerRun(bake, wafersPerRun);
   const measCost = calcMeasurementCostPerRun(measurements, wafersPerRun);
   const shipCost = calcShipmentCostPerRun(shipment, wafersPerRun);
-  const directLabor = (mocvdCost.labor + measCost.labor + shipCost.labor) * runCount;
+  const directLabor = (mocvdCost.labor + bakeCost.labor + measCost.labor + shipCost.labor) * runCount;
 
   // 제조경비 (설비비 + 유지보수 + 고정경비)
-  const equipmentTotal = (mocvdCost.equipment + measCost.equipment + mocvdCost.maintenance) * runCount;
+  const equipmentTotal = (mocvdCost.equipment + bakeCost.equipment + measCost.equipment + mocvdCost.maintenance) * runCount;
   const packagingMaterial = shipCost.material * runCount;
   const fixedOverhead = calcFixedOverhead(overhead);
   const manufacturingOverhead = equipmentTotal + packagingMaterial + fixedOverhead;
@@ -120,6 +133,7 @@ export function calcFullCost(
 export function calcBreakEven(
   bom: BOMItem[],
   mocvd: MOCVDConfig,
+  bake: BakeConfig,
   measurements: MeasurementItem[],
   shipment: ShipmentConfig,
   overhead: OverheadCosts,
@@ -131,12 +145,14 @@ export function calcBreakEven(
   // 변동비: 1런당 비용 / 런당 양품 수
   const materialPerRun = calcMaterialPerRun(bom);
   const mocvdCost = calcMOCVDCostPerRun(mocvd);
+  const bakeCost = calcBakeCostPerRun(bake, wafersPerRun);
   const measCost = calcMeasurementCostPerRun(measurements, wafersPerRun);
   const shipCost = calcShipmentCostPerRun(shipment, wafersPerRun);
 
   const costPerRun =
     materialPerRun +
     mocvdCost.labor + mocvdCost.equipment + mocvdCost.maintenance +
+    bakeCost.labor + bakeCost.equipment +
     measCost.labor + measCost.equipment +
     shipCost.labor + shipCost.material;
 

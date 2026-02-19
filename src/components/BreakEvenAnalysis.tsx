@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useCostStore } from '../store/useCostStore';
-import { calcBreakEven, calcMaterialPerRun, calcMOCVDCostPerRun, calcMeasurementCostPerRun, calcShipmentCostPerRun, calcFixedOverhead, calcSellingAdminCost, formatKRW } from '../utils/calculations';
+import { calcBreakEven, calcMaterialPerRun, calcMOCVDCostPerRun, calcBakeCostPerRun, calcMeasurementCostPerRun, calcShipmentCostPerRun, calcFixedOverhead, calcSellingAdminCost, formatKRW } from '../utils/calculations';
 
 function AiSuggestionBox({ context }: { context: string }) {
   const [response, setResponse] = useState('');
@@ -115,11 +115,11 @@ function AiSuggestionBox({ context }: { context: string }) {
 }
 
 export default function BreakEvenAnalysis() {
-  const { bom, mocvd, measurements, shipment, overhead, sellingPrice, setSellingPrice } = useCostStore();
+  const { bom, mocvd, bake, measurements, shipment, overhead, sellingPrice, setSellingPrice } = useCostStore();
 
   const bep = useMemo(
-    () => calcBreakEven(bom, mocvd, measurements, shipment, overhead, sellingPrice),
-    [bom, mocvd, measurements, shipment, overhead, sellingPrice]
+    () => calcBreakEven(bom, mocvd, bake, measurements, shipment, overhead, sellingPrice),
+    [bom, mocvd, bake, measurements, shipment, overhead, sellingPrice]
   );
 
   // 변동비 (웨이퍼당)
@@ -127,12 +127,13 @@ export default function BreakEvenAnalysis() {
     const totalYield = (1 - mocvd.defectRate / 100) * (1 - shipment.shipmentDefectRate / 100);
     const materialPerRun = calcMaterialPerRun(bom);
     const mocvdCost = calcMOCVDCostPerRun(mocvd);
+    const bakeCost = calcBakeCostPerRun(bake, mocvd.wafersPerRun);
     const measCost = calcMeasurementCostPerRun(measurements, mocvd.wafersPerRun);
     const shipCost = calcShipmentCostPerRun(shipment, mocvd.wafersPerRun);
-    const costPerRun = materialPerRun + mocvdCost.labor + mocvdCost.equipment + mocvdCost.maintenance + measCost.labor + measCost.equipment + shipCost.labor + shipCost.material;
+    const costPerRun = materialPerRun + mocvdCost.labor + mocvdCost.equipment + mocvdCost.maintenance + bakeCost.labor + bakeCost.equipment + measCost.labor + measCost.equipment + shipCost.labor + shipCost.material;
     const goodPerRun = mocvd.wafersPerRun * totalYield;
     return goodPerRun > 0 ? costPerRun / goodPerRun : 0;
-  }, [bom, mocvd, measurements, shipment]);
+  }, [bom, mocvd, bake, measurements, shipment]);
 
   const fixedCost = calcFixedOverhead(overhead) + calcSellingAdminCost(overhead);
 

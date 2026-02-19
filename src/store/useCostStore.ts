@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { BOMItem, MOCVDConfig, MeasurementItem, ShipmentConfig, OverheadCosts } from '../types';
+import { BOMItem, MOCVDConfig, BakeConfig, MeasurementItem, ShipmentConfig, OverheadCosts } from '../types';
 
 export type DashboardPage = 'home' | 'cost-simulator' | 'production' | 'quality' | 'settings';
 
@@ -8,6 +8,7 @@ interface CostStore {
   sidebarOpen: boolean;
   bom: BOMItem[];
   mocvd: MOCVDConfig;
+  bake: BakeConfig;
   measurements: MeasurementItem[];
   shipment: ShipmentConfig;
   overhead: OverheadCosts;
@@ -23,6 +24,7 @@ interface CostStore {
   removeBomItem: (id: string) => void;
 
   setMocvd: (config: Partial<MOCVDConfig>) => void;
+  setBake: (config: Partial<BakeConfig>) => void;
 
   setMeasurements: (items: MeasurementItem[]) => void;
   addMeasurement: (item: MeasurementItem) => void;
@@ -63,6 +65,14 @@ const defaultMocvd: MOCVDConfig = {
   defectRate: 5,
 };
 
+const defaultBake: BakeConfig = {
+  bakeTimePerWaferSec: 180,
+  loadingTimePerRunSec: 600,
+  equipmentCostPerHour: 35000,
+  workers: 1,
+  hourlyWage: 18000,
+};
+
 // 측정 공정 기본값
 const defaultMeasurements: MeasurementItem[] = [
   { id: '1', name: 'PL 측정', equipmentName: 'PL Mapper', timePerWaferSec: 120, samplingRate: 100, equipmentCostPerHour: 30000, workers: 1, hourlyWage: 18000 },
@@ -99,6 +109,7 @@ export const useCostStore = create<CostStore>((set) => ({
   sidebarOpen: true,
   bom: defaultBom,
   mocvd: defaultMocvd,
+  bake: defaultBake,
   measurements: defaultMeasurements,
   shipment: defaultShipment,
   overhead: defaultOverhead,
@@ -115,6 +126,7 @@ export const useCostStore = create<CostStore>((set) => ({
   removeBomItem: (id) => set((s) => ({ bom: s.bom.filter((b) => b.id !== id) })),
 
   setMocvd: (updates) => set((s) => ({ mocvd: { ...s.mocvd, ...updates } })),
+  setBake: (updates) => set((s) => ({ bake: { ...s.bake, ...updates } })),
 
   setMeasurements: (measurements) => set({ measurements }),
   addMeasurement: (item) => set((s) => ({ measurements: [...s.measurements, item] })),

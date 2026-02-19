@@ -6,16 +6,16 @@ import { calcFullCost, calcBreakEven, calcMaterialPerRun, formatKRW } from '../u
 const PIE_COLORS = ['#2563eb', '#16a34a', '#f59e0b', '#ef4444'];
 
 export default function DashboardHome() {
-  const { bom, mocvd, measurements, shipment, overhead, lotSize, sellingPrice, setCurrentPage } = useCostStore();
+  const { bom, mocvd, bake, measurements, shipment, overhead, lotSize, sellingPrice, setCurrentPage } = useCostStore();
 
   const cost = useMemo(
-    () => calcFullCost(bom, mocvd, measurements, shipment, overhead, lotSize),
-    [bom, mocvd, measurements, shipment, overhead, lotSize]
+    () => calcFullCost(bom, mocvd, bake, measurements, shipment, overhead, lotSize),
+    [bom, mocvd, bake, measurements, shipment, overhead, lotSize]
   );
 
   const bep = useMemo(
-    () => calcBreakEven(bom, mocvd, measurements, shipment, overhead, sellingPrice),
-    [bom, mocvd, measurements, shipment, overhead, sellingPrice]
+    () => calcBreakEven(bom, mocvd, bake, measurements, shipment, overhead, sellingPrice),
+    [bom, mocvd, bake, measurements, shipment, overhead, sellingPrice]
   );
 
   const profit = sellingPrice - cost.unitCost;
