@@ -13,7 +13,19 @@ import {
 const PIE_COLORS = ['#2563eb', '#16a34a', '#f59e0b', '#ef4444'];
 
 const TOOLTIP_STYLE = {
-  contentStyle: { borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '12px' },
+  contentStyle: {
+    backgroundColor: '#ffffff',
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    fontSize: '12px',
+    color: '#111827',
+    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.12)',
+    padding: '8px 12px',
+  },
+  labelStyle: { color: '#374151', fontWeight: 600 as const },
+  itemStyle: { color: '#374151' },
+  cursor: { fill: 'rgba(100,116,139,0.06)' },
+  allowEscapeViewBox: { x: true, y: true },
 };
 
 export default function CostSummary() {
@@ -97,24 +109,24 @@ export default function CostSummary() {
       {/* KPI 카드 */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center">
-          <div className="text-xs text-gray-500 mb-1">목표 웨이퍼</div>
-          <div className="text-2xl font-bold text-gray-800">{lotSize.toLocaleString()}<span className="text-sm font-normal">매</span></div>
-          <div className="text-xs text-gray-400">{runCount}런 필요</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 mb-1">목표 웨이퍼</div>
+          <div className="text-2xl font-bold text-gray-800 dark:text-slate-100">{lotSize.toLocaleString()}<span className="text-sm font-normal">매</span></div>
+          <div className="text-xs text-gray-400 dark:text-slate-500">{runCount}런 필요</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center">
-          <div className="text-xs text-gray-500 mb-1">웨이퍼당 원가</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 mb-1">웨이퍼당 원가</div>
           <div className="text-2xl font-bold text-blue-700 font-mono">{formatKRW(cost.unitCost)}<span className="text-sm font-normal"> 원</span></div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center">
-          <div className="text-xs text-gray-500 mb-1">런당 원가</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 mb-1">런당 원가</div>
           <div className="text-2xl font-bold text-indigo-700 font-mono">{formatKRW(cost.costPerRun)}<span className="text-sm font-normal"> 원</span></div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 text-center">
-          <div className="text-xs text-gray-500 mb-1">판매 단가</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 mb-1">판매 단가</div>
           <div className="text-2xl font-bold text-gray-800 font-mono">{formatKRW(sellingPrice)}<span className="text-sm font-normal"> 원</span></div>
         </div>
         <div className={`rounded-xl shadow-sm border p-5 text-center ${profit >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
-          <div className="text-xs text-gray-500 mb-1">매당 이익 (이익률)</div>
+          <div className="text-xs text-gray-500 dark:text-slate-400 mb-1">매당 이익 (이익률)</div>
           <div className={`text-2xl font-bold font-mono ${profit >= 0 ? 'text-green-700' : 'text-red-700'}`}>
             {formatKRW(profit)}<span className="text-sm font-normal"> 원 ({profitRate.toFixed(1)}%)</span>
           </div>
@@ -124,19 +136,19 @@ export default function CostSummary() {
       {/* 원가 명세 + 파이 차트 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">원가 명세 ({lotSize.toLocaleString()}매 기준)</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">원가 명세 ({lotSize.toLocaleString()}매 기준)</h3>
           <div className="space-y-3">
             {summaryItems.map((item) => (
               <div
                 key={item.label}
                 className={`flex justify-between items-center py-2 ${item.border ? 'border-t-2 pt-3' : ''}`}
               >
-                <span className={`text-sm ${item.bold ? 'font-semibold' : ''} text-gray-600`}>{item.label}</span>
+                <span className={`text-sm ${item.bold ? 'font-semibold' : ''} text-gray-600 dark:text-slate-300`}>{item.label}</span>
                 <div className="text-right">
                   <span className={`font-mono ${item.bold ? 'font-bold text-lg' : ''} ${item.color}`}>
                     {formatKRW(item.value)} 원
                   </span>
-                  <span className="text-xs text-gray-400 block">
+                  <span className="text-xs text-gray-400 dark:text-slate-500 block">
                     (매당 {formatKRW(lotSize > 0 ? item.value / lotSize : 0)} 원)
                   </span>
                 </div>
@@ -146,22 +158,29 @@ export default function CostSummary() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">원가 구성비</h3>
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-2">원가 구성비</h3>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
                 data={pieData}
                 cx="50%" cy="50%"
-                innerRadius={60} outerRadius={110}
-                paddingAngle={2} dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
+                innerRadius={70} outerRadius={110}
+                paddingAngle={3} dataKey="value"
               >
                 {pieData.map((_, index) => (
                   <Cell key={index} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip {...TOOLTIP_STYLE} formatter={(value: number) => `${formatKRW(value)} 원`} />
-              <Legend />
+              <Tooltip
+                {...TOOLTIP_STYLE}
+                formatter={(value: number, name: string) => {
+                  const pct = cost.totalCost > 0 ? ((value / cost.totalCost) * 100).toFixed(1) : '0';
+                  return [`${formatKRW(value)} 원 (${pct}%)`, name];
+                }}
+              />
+              <Legend
+                formatter={(value) => <span style={{ color: '#6b7280', fontSize: 12 }}>{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -171,44 +190,44 @@ export default function CostSummary() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700">공정 단계별 웨이퍼당 원가 구조</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200">공정 단계별 웨이퍼당 원가 구조</h3>
             <p className="text-xs text-gray-400 mt-0.5">각 단계가 웨이퍼 1매 원가에 기여하는 비용</p>
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-400">총 원가/매</div>
+            <div className="text-xs text-gray-400 dark:text-slate-500">총 원가/매</div>
             <div className="text-lg font-bold text-gray-800 font-mono">{formatKRW(cost.unitCost)} 원</div>
           </div>
         </div>
 
-        <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={stageData} margin={{ top: 10, right: 60, left: 0, bottom: 0 }}>
+        <ResponsiveContainer width="100%" height={260}>
+          <BarChart data={stageData} margin={{ top: 28, right: 16, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-            <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
+            <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#374151' }} axisLine={false} tickLine={false} />
             <YAxis
               tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v}
-              tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+              tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} width={36}
             />
             <Tooltip
               {...TOOLTIP_STYLE}
-              formatter={(v: number, _: string, props: { payload?: { pct?: number } }) => [
-                `${formatKRW(v)} 원 (${(props.payload?.pct ?? 0).toFixed(1)}%)`,
-                '웨이퍼당 원가',
+              formatter={(v: number, _: string, props: { payload?: { pct?: number; name?: string } }) => [
+                `${formatKRW(v)} 원`,
+                `${props.payload?.name ?? ''} (${(props.payload?.pct ?? 0).toFixed(1)}%)`,
               ]}
             />
-            <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+            <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={60}>
               {stageData.map((d, i) => <Cell key={i} fill={d.fill} />)}
               <LabelList
                 dataKey="value"
                 position="top"
-                formatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : v}
-                style={{ fontSize: 10, fill: '#6b7280' }}
+                formatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : String(v)}
+                style={{ fontSize: 11, fill: '#6b7280', fontWeight: 500 }}
               />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
 
         {/* 범례 및 누적 바 */}
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700">
           <div className="flex items-center gap-1 h-5 rounded-lg overflow-hidden">
             {waterfallData.map((d) =>
               d.value > 0 ? (
@@ -227,10 +246,10 @@ export default function CostSummary() {
           </div>
           <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
             {stageData.map((d) => (
-              <div key={d.name} className="flex items-center gap-1.5 text-xs text-gray-600">
+              <div key={d.name} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-slate-400">
                 <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: d.fill }} />
                 <span>{d.name}</span>
-                <span className="font-mono font-medium text-gray-800">{formatKRW(d.value)}원</span>
+                <span className="font-mono font-medium text-gray-800 dark:text-slate-200">{formatKRW(d.value)}원</span>
                 <span className="text-gray-400">({d.pct.toFixed(1)}%)</span>
               </div>
             ))}
@@ -240,20 +259,20 @@ export default function CostSummary() {
 
       {/* 이익 게이지 */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">수익성 분석</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">수익성 분석</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mb-1">
               <span>원가</span>
               <span>{formatKRW(cost.unitCost)} 원</span>
             </div>
-            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-300"
                 style={{ width: sellingPrice > 0 ? `${Math.min((cost.unitCost / sellingPrice) * 100, 100)}%` : '0%' }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mt-1">
               <span>판매가 대비 원가 비율</span>
               <span className="font-medium">
                 {sellingPrice > 0 ? ((cost.unitCost / sellingPrice) * 100).toFixed(1) : 0}%
@@ -262,7 +281,7 @@ export default function CostSummary() {
           </div>
 
           <div className="text-center">
-            <div className="text-xs text-gray-500 mb-2">매당 이익</div>
+            <div className="text-xs text-gray-500 dark:text-slate-400 mb-2">매당 이익</div>
             <div className={`text-3xl font-bold font-mono ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {profit >= 0 ? '+' : ''}{formatKRW(profit)}
               <span className="text-base font-normal"> 원</span>
@@ -273,17 +292,17 @@ export default function CostSummary() {
           </div>
 
           <div>
-            <div className="flex justify-between text-xs text-gray-500 mb-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mb-1">
               <span>이익</span>
               <span className={profit >= 0 ? 'text-green-600' : 'text-red-600'}>{formatKRW(Math.abs(profit))} 원</span>
             </div>
-            <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-3 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${profit >= 0 ? 'bg-green-500' : 'bg-red-500'}`}
                 style={{ width: sellingPrice > 0 ? `${Math.min(Math.abs(profitRate), 100)}%` : '0%' }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-slate-400 mt-1">
               <span>총 이익 ({lotSize.toLocaleString()}매)</span>
               <span className={`font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {formatKRW(profit * lotSize)} 원
